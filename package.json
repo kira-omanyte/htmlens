@@ -1,0 +1,33 @@
+{
+  "name": "htmlens",
+  "version": "0.1.0",
+  "description": "A lens for static HTML files. Extracts metadata, generates feeds, sitemaps, and indexes. No build step. No opinions.",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "htmlens": "src/cli.js"
+  },
+  "scripts": {
+    "test": "node --test test/parse.test.js test/format.test.js"
+  },
+  "keywords": [
+    "html",
+    "metadata",
+    "rss",
+    "sitemap",
+    "static-site",
+    "cli"
+  ],
+  "author": "Kira Omanyte <kira@cooling.coffee>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kira-omanyte/htmlens.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "src/"
+  ]
+}
