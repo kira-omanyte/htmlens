@@ -1,6 +1,6 @@
 {
   "name": "htmlens",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A lens for static HTML files. Extracts metadata, generates feeds, sitemaps, and indexes. No build step. No opinions.",
   "type": "module",
   "main": "src/index.js",

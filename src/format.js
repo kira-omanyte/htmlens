@@ -41,12 +41,25 @@ export function toJSON(results, options = {}) {
 }
 
 /**
+ * Strip a suffix from a title (e.g., " — Site Name" or " | Site Name").
+ * @param {string} title
+ * @param {string} suffix — the suffix to remove (e.g., " — Kira Omanyte")
+ * @returns {string}
+ */
+function stripTitleSuffix(title, suffix) {
+  if (!suffix || !title) return title;
+  return title.endsWith(suffix) ? title.slice(0, -suffix.length) : title;
+}
+
+/**
  * Format results as RSS 2.0.
  * @param {object[]} results
  * @param {object} options
  * @param {string} options.siteUrl — base URL of the site
  * @param {string} [options.title] — feed title
  * @param {string} [options.description] — feed description
+ * @param {string} [options.language] — feed language (e.g., "en")
+ * @param {string} [options.titleStrip] — suffix to strip from item titles
  * @returns {string}
  */
 export function toRSS(results, options = {}) {
@@ -54,6 +67,8 @@ export function toRSS(results, options = {}) {
     siteUrl = '',
     title = 'htmlens feed',
     description = '',
+    language = '',
+    titleStrip = '',
   } = options;
 
   const baseUrl = siteUrl.replace(/\/$/, '');
@@ -62,10 +77,12 @@ export function toRSS(results, options = {}) {
     .filter(r => r.title) // skip files without titles
     .map(r => {
       const link = r.canonical || (baseUrl ? `${baseUrl}/${r.relativePath}` : r.relativePath);
+      const itemTitle = stripTitleSuffix(r.title, titleStrip);
       const pubDate = r.date ? new Date(r.date).toUTCString() : '';
       return `    <item>
-      <title>${escapeXml(r.title)}</title>
-      <link>${escapeXml(link)}</link>${r.description ? `
+      <title>${escapeXml(itemTitle)}</title>
+      <link>${escapeXml(link)}</link>
+      <guid>${escapeXml(link)}</guid>${r.description ? `
       <description>${escapeXml(r.description)}</description>` : ''}${pubDate ? `
       <pubDate>${pubDate}</pubDate>` : ''}${r.author ? `
       <author>${escapeXml(r.author)}</author>` : ''}
@@ -80,7 +97,8 @@ export function toRSS(results, options = {}) {
   <channel>
     <title>${escapeXml(title)}</title>
     <link>${escapeXml(baseUrl || '')}</link>
-    <description>${escapeXml(description)}</description>${feedUrl ? `
+    <description>${escapeXml(description)}</description>${language ? `
+    <language>${escapeXml(language)}</language>` : ''}${feedUrl ? `
     <atom:link href="${escapeXml(feedUrl)}" rel="self" type="application/rss+xml"/>` : ''}
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <generator>htmlens</generator>

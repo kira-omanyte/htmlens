@@ -27,13 +27,22 @@ htmlens ./site
 # Generate RSS feed
 htmlens ./site -f rss -u https://example.com -t "My Site"
 
+# Only include essays in the feed
+htmlens ./site --include essays/ -f rss -u https://example.com
+
+# Clean up titles — strip " — My Site" suffix from RSS items
+htmlens ./site -f rss -u https://example.com --title-strip " — My Site"
+
+# Set feed language
+htmlens ./site -f rss -u https://example.com -l en
+
 # Generate sitemap
 htmlens ./site -f sitemap -u https://example.com
 
 # CSV export
 htmlens ./site -f csv
 
-# Skip directories
+# Skip directories or files
 htmlens ./site -e node_modules,dist,.git
 
 # Include raw meta tags in JSON
@@ -50,12 +59,17 @@ const metadata = parse(htmlString);
 // → { title, description, date, author, canonical, image, lang, type, meta }
 
 // Scan a directory
-const pages = await scan('./site', { exclude: ['node_modules'] });
+const pages = await scan('./site', { exclude: ['node_modules'], include: 'essays/' });
 // → [{ path, relativePath, modified, title, description, date, ... }, ...]
 
 // Format output
 const json = toJSON(pages);
-const rss = toRSS(pages, { siteUrl: 'https://example.com', title: 'My Feed' });
+const rss = toRSS(pages, {
+  siteUrl: 'https://example.com',
+  title: 'My Feed',
+  language: 'en',
+  titleStrip: ' — My Site',
+});
 const sitemap = toSitemap(pages, { siteUrl: 'https://example.com' });
 const csv = toCSV(pages);
 ```

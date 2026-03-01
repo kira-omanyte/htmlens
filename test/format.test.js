@@ -84,6 +84,41 @@ describe('toRSS', () => {
     assert.ok(out.includes('Foo &amp; Bar &lt;Baz&gt;'));
     assert.ok(out.includes('It&apos;s &quot;great&quot;'));
   });
+
+  it('includes guid element based on link', () => {
+    const out = toRSS(sample, { siteUrl: 'https://example.com' });
+    assert.ok(out.includes('<guid>https://example.com/essays/foo.html</guid>'));
+    assert.ok(out.includes('<guid>https://example.com/about.html</guid>'));
+  });
+
+  it('includes language when specified', () => {
+    const out = toRSS(sample, { siteUrl: 'https://example.com', language: 'en' });
+    assert.ok(out.includes('<language>en</language>'));
+  });
+
+  it('omits language when not specified', () => {
+    const out = toRSS(sample, { siteUrl: 'https://example.com' });
+    assert.ok(!out.includes('<language>'));
+  });
+
+  it('strips title suffix when titleStrip is specified', () => {
+    const items = [{
+      ...sample[0],
+      title: 'The Generative Void — Kira Omanyte',
+    }];
+    const out = toRSS(items, { siteUrl: 'https://example.com', titleStrip: ' — Kira Omanyte' });
+    assert.ok(out.includes('<title>The Generative Void</title>'));
+    assert.ok(!out.includes('Kira Omanyte</title>'));
+  });
+
+  it('leaves title unchanged when suffix does not match', () => {
+    const items = [{
+      ...sample[0],
+      title: 'Just a Title',
+    }];
+    const out = toRSS(items, { siteUrl: 'https://example.com', titleStrip: ' — Kira Omanyte' });
+    assert.ok(out.includes('<title>Just a Title</title>'));
+  });
 });
 
 describe('toSitemap', () => {
