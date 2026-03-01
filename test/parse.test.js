@@ -122,6 +122,24 @@ describe('parse', () => {
     assert.equal(result.description, 'Self-closed');
   });
 
+  it('handles apostrophes in double-quoted content attributes', () => {
+    const html = `<html><head>
+      <meta property="og:title" content="The Sleeping Beauty's Architecture — Kira">
+      <meta property="og:description" content="Hinton's dark knowledge and Polanyi's tacit knowledge are structural twins.">
+    </head></html>`;
+    const result = parse(html);
+    assert.equal(result.title, "The Sleeping Beauty's Architecture — Kira");
+    assert.equal(result.description, "Hinton's dark knowledge and Polanyi's tacit knowledge are structural twins.");
+  });
+
+  it('handles double quotes in single-quoted content attributes', () => {
+    const html = `<html><head>
+      <meta property='og:description' content='She said "hello" to the world.'>
+    </head></html>`;
+    const result = parse(html);
+    assert.equal(result.description, 'She said "hello" to the world.');
+  });
+
   it('handles a real-world essay head section', () => {
     const html = `<!DOCTYPE html>
 <html lang="en">

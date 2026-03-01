@@ -48,18 +48,37 @@ function decodeEntities(str) {
  */
 function extractMeta(html) {
   const meta = new Map();
-  // <meta name="..." content="..."> or <meta property="..." content="...">
-  const re = /<meta\s+(?:[^>]*?\s+)?(?:name|property)\s*=\s*["']([^"']+)["'][^>]*?\s+content\s*=\s*["']([^"']*)["'][^>]*?\/?>/gi;
+  // Match <meta> tags with name/property and content attributes (either order).
+  // Uses separate patterns for double-quoted and single-quoted values so that
+  // apostrophes inside double-quoted attributes (e.g., content="Hinton's") don't
+  // terminate the match prematurely.
+  const patterns = [
+    // name/property first, double-quoted
+    /<meta\s+(?:[^>]*?\s+)?(?:name|property)\s*=\s*"([^"]+)"[^>]*?\s+content\s*=\s*"([^"]*)"[^>]*?\/?>/gi,
+    // name/property first, single-quoted
+    /<meta\s+(?:[^>]*?\s+)?(?:name|property)\s*=\s*'([^']+)'[^>]*?\s+content\s*=\s*'([^']*)'[^>]*?\/?>/gi,
+    // name/property first, mixed: name in double, content in single
+    /<meta\s+(?:[^>]*?\s+)?(?:name|property)\s*=\s*"([^"]+)"[^>]*?\s+content\s*=\s*'([^']*)'[^>]*?\/?>/gi,
+    // name/property first, mixed: name in single, content in double
+    /<meta\s+(?:[^>]*?\s+)?(?:name|property)\s*=\s*'([^']+)'[^>]*?\s+content\s*=\s*"([^"]*)"[^>]*?\/?>/gi,
+    // content first, double-quoted
+    /<meta\s+(?:[^>]*?\s+)?content\s*=\s*"([^"]*)"[^>]*?\s+(?:name|property)\s*=\s*"([^"]+)"[^>]*?\/?>/gi,
+    // content first, single-quoted
+    /<meta\s+(?:[^>]*?\s+)?content\s*=\s*'([^']*)'[^>]*?\s+(?:name|property)\s*=\s*'([^']+)'[^>]*?\/?>/gi,
+    // content first, mixed: content in double, name in single
+    /<meta\s+(?:[^>]*?\s+)?content\s*=\s*"([^"]*)"[^>]*?\s+(?:name|property)\s*=\s*'([^']+)'[^>]*?\/?>/gi,
+    // content first, mixed: content in single, name in double
+    /<meta\s+(?:[^>]*?\s+)?content\s*=\s*'([^']*)'[^>]*?\s+(?:name|property)\s*=\s*"([^"]+)"[^>]*?\/?>/gi,
+  ];
   let m;
-  while ((m = re.exec(html)) !== null) {
-    meta.set(m[1].toLowerCase(), decodeEntities(m[2]));
-  }
-  // Also match content-first order: <meta content="..." name="...">
-  const re2 = /<meta\s+(?:[^>]*?\s+)?content\s*=\s*["']([^"']*)["'][^>]*?\s+(?:name|property)\s*=\s*["']([^"']+)["'][^>]*?\/?>/gi;
-  while ((m = re2.exec(html)) !== null) {
-    const key = m[2].toLowerCase();
-    if (!meta.has(key)) {
-      meta.set(key, decodeEntities(m[1]));
+  for (const re of patterns) {
+    const contentFirst = re.source.indexOf('content') < re.source.indexOf('name|property');
+    while ((m = re.exec(html)) !== null) {
+      const key = (contentFirst ? m[2] : m[1]).toLowerCase();
+      const value = decodeEntities(contentFirst ? m[1] : m[2]);
+      if (!meta.has(key)) {
+        meta.set(key, value);
+      }
     }
   }
   return meta;
